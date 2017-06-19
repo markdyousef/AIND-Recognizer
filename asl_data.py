@@ -5,26 +5,31 @@ import pandas as pd
 
 
 class AslDb(object):
-    """ American Sign Language database drawn from the RWTH-BOSTON-104 frame positional data
+    """ American Sign Language database drawn from the RWTH-BOSTON-104
+        frame positional data
 
-    This class has been designed to provide a convenient interface for individual word data for students in the Udacity AI Nanodegree Program.
+    This class has been designed to provide a convenient interface for
+    individual word data for students in the Udacity AI Nanodegree Program.
 
-    For example, to instantiate and load train/test files using a feature_method 
-	definition named features, the following snippet may be used:
+    For example, to instantiate and load train/test files using a
+    feature_method definition named features,
+    the following snippet may be used:
         asl = AslDb()
         asl.build_training(tr_file, features)
         asl.build_test(tst_file, features)
 
     Reference for the original ASL data:
     http://www-i6.informatik.rwth-aachen.de/~dreuw/database-rwth-boston-104.php
-    The sentences provided in the data have been segmented into isolated words for this database
+    The sentences provided in the data
+    have been segmented into isolated words for this database
     """
 
     def __init__(self,
                  hands_fn=os.path.join('data', 'hands_condensed.csv'),
                  speakers_fn=os.path.join('data', 'speaker.csv'),
                  ):
-        """ loads ASL database from csv files with hand position information by frame, and speaker information
+        """ loads ASL database from csv files with hand position information by frame,
+        and speaker information
 
         :param hands_fn: str
             filename of hand position csv data with expected format:
@@ -43,22 +48,35 @@ class AslDb(object):
                   2         149     181      170      175     161      62  woman-1
 
         """
-        self.df = pd.read_csv(hands_fn).merge(pd.read_csv(speakers_fn),on='video')
-        self.df.set_index(['video','frame'], inplace=True)
+        self.df = pd.read_csv(hands_fn).merge(
+            pd.read_csv(speakers_fn),
+            on='video'
+        )
+        self.df.set_index(['video', 'frame'], inplace=True)
 
-    def build_training(self, feature_list, csvfilename =os.path.join('data', 'train_words.csv')):
-        """ wrapper creates sequence data objects for training words suitable for hmmlearn library
+    def build_training(
+        self,
+        feature_list,
+        csvfilename=os.path.join('data', 'train_words.csv')
+    ):
+        """ wrapper creates sequence data objects
+            for training words suitable for hmmlearn library
 
         :param feature_list: list of str label names
         :param csvfilename: str
         :return: WordsData object
             dictionary of lists of feature list sequence lists for each word
-                {'FRANK': [[[87, 225], [87, 225], ...], [[88, 219], [88, 219], ...]]]}
+        {'FRANK': [[[87, 225], [87, 225], ...], [[88, 219], [88, 219], ...]]]}
         """
         return WordsData(self, csvfilename, feature_list)
 
-    def build_test(self, feature_method, csvfile=os.path.join('data', 'test_words.csv')):
-        """ wrapper creates sequence data objects for individual test word items suitable for hmmlearn library
+    def build_test(
+        self,
+        feature_method,
+        csvfile=os.path.join('data', 'test_words.csv')
+    ):
+        """ wrapper creates sequence data objects
+        for individual test word items suitable for hmmlearn library
 
         :param feature_method: Feature function
         :param csvfile: str
@@ -70,16 +88,24 @@ class AslDb(object):
 
 
 class WordsData(object):
-    """ class provides loading and getters for ASL data suitable for use with hmmlearn library
+    """ class provides loading and getters
+        for ASL data suitable for use with hmmlearn library
 
     """
 
-    def __init__(self, asl:AslDb, csvfile:str, feature_list:list):
-        """ loads training data sequences suitable for use with hmmlearn library based on feature_method chosen
+    def __init__(
+        self,
+        asl: AslDb,
+        csvfile: str,
+        feature_list: list
+    ):
+        """ loads training data sequences suitable for use with hmmlearn library
+            based on feature_method chosen
 
         :param asl: ASLdata object
         :param csvfile: str
-            filename of csv file containing word training start and end frame data with expected format:
+            filename of csv file containing word training
+                start and end frame data with expected format:
                 video,speaker,word,startframe,endframe
         :param feature_list: list of str feature labels
         """
@@ -100,16 +126,19 @@ class WordsData(object):
         tr_df = pd.read_csv(fn)
         dict = {}
         for i in range(len(tr_df)):
-            word = tr_df.ix[i,'word']
-            video = tr_df.ix[i,'video']
-            new_sequence = [] # list of sample lists for a sequence
-            for frame in range(tr_df.ix[i,'startframe'], tr_df.ix[i,'endframe']+1):
+            word = tr_df.ix[i, 'word']
+            video = tr_df.ix[i, 'video']
+            new_sequence = []   # list of sample lists for a sequence
+            for frame in range(
+                tr_df.ix[i, 'startframe'],
+                tr_df.ix[i, 'endframe']+1
+            ):
                 vid_frame = video, frame
                 sample = [asl.df.ix[vid_frame][f] for f in feature_list]
                 if len(sample) > 0:  # dont add if not found
                     new_sequence.append(sample)
             if word in dict:
-                dict[word].append(new_sequence) # list of sequences
+                dict[word].append(new_sequence)  # list of sequences
             else:
                 dict[word] = [new_sequence]
         return dict
@@ -293,5 +322,3 @@ def create_hmmlearn_data(dict):
 if __name__ == '__main__':
     asl= AslDb()
     print(asl.df.ix[98, 1])
-
-
