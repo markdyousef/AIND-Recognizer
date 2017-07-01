@@ -3,7 +3,6 @@ import os
 import numpy as np
 import pandas as pd
 
-
 class AslDb(object):
     """ American Sign Language database drawn from the RWTH-BOSTON-104
         frame positional data
