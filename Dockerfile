@@ -1,7 +1,7 @@
 FROM jupyter/scipy-notebook
 
-WORKDIR /analysis
+WORKDIR /
 
-COPY . /analysis
+COPY . .ipynb_checkpoints/
 
-RUN pip install -r analysis/requirements.txt
+# RUN pip install -r requirements.txt
