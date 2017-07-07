@@ -96,14 +96,19 @@ class SelectorBIC(ModelSelector):
         best_model = None
 
         try:
-            for num_states in range(self.min_n_components, self.max_n_components):
+            for num_states in range(
+                self.min_n_components,
+                self.max_n_components + 1
+            ):
                 model = self.base_model(num_states)
                 # Calcultate BIC value. Smaller score = better:
                 # BIC = -2 * logL + num_of_params * log(num_of_datapoints)
                 logL = model.score(self.X, self.lengths)
                 # num_of_params = n * n + 2 * n * d - 1
-                num_of_params =  (num_states * num_states + 2
-                                  * num_states * len(self.X[0]) - 1)
+                num_of_params = (
+                    num_states * num_states + 2
+                    * num_states * len(self.X[0]) - 1)
+
                 num_of_datapoints = len(self.X)
 
                 bic = -2 * logL + num_of_params * math.log(num_of_datapoints)
@@ -131,7 +136,31 @@ class SelectorDIC(ModelSelector):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
         # TODO implement model selection based on DIC scores
-        raise NotImplementedError
+        best_score = float('-inf')
+        best_model = None
+
+        try:
+            for num_states in range(
+                self.min_n_components,
+                self.max_n_components + 1
+            ):
+                model = self.base_model(num_states)
+                logL = model.score(self.X, self.lengths)
+
+                other_logL_total = 0
+                for word in self.words:
+                    other_X, other_lengths = self.hwords[word]
+                    other_logL_total += model.score(other_X, other_lengths)
+
+                    other_logL_avg = other_logL_total / (len(self.words) - 1)
+                    dic = logL - other_logL_avg
+                    if dic > best_score:
+                        best_score = dic
+                        best_model = model
+        except:
+            return best_model
+
+        return best_model
 
 
 class SelectorCV(ModelSelector):
@@ -160,7 +189,7 @@ class SelectorCV(ModelSelector):
             try:
                 for num_states in range(
                     self.min_n_components,
-                    self.max_n_components
+                    self.max_n_components + 1
                 ):
                     model = self.base_model(num_states)
                     logL = model.score(X_test, lengths_test)
